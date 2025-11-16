@@ -8,15 +8,17 @@ interface ApiResponse<T> {
     error?: ApiError;
 }
 
-interface FetchConfig {
+interface FetchConfig<TBody> {
     method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
     headers?: Record<string, string>;
     queryParams?: Record<string, string | number>;
+    reqBody?: TBody;
 }
 
-async function fetcher<T>(url: string, config: FetchConfig = {}): Promise<ApiResponse<T>> {
+async function httpRequest<TResponse, TBody>(url: string, config: FetchConfig<TBody> = {}): Promise<ApiResponse<TResponse>> {
     try {
         let finalUrl = url;
+        const body = (config.method && config.method != "GET") ? JSON.stringify(config.reqBody) : null;
 
         if (config.queryParams) {
             const params = new URLSearchParams();
@@ -28,7 +30,11 @@ async function fetcher<T>(url: string, config: FetchConfig = {}): Promise<ApiRes
 
         const response = await fetch(finalUrl, {
             method: config.method || 'GET',
-            headers: { ...config.headers },
+            headers: {
+                "Content-Type": "application/json",
+                ...config.headers
+            },
+            body: body,
         });
 
         if (!response.ok) {
@@ -40,7 +46,7 @@ async function fetcher<T>(url: string, config: FetchConfig = {}): Promise<ApiRes
             };
         }
 
-        const data: T = await response.json();
+        const data: TResponse = await response.json();
         return { data };
     } catch (error) {
         return {
@@ -51,4 +57,4 @@ async function fetcher<T>(url: string, config: FetchConfig = {}): Promise<ApiRes
     }
 }
 
-export { fetcher };
+export { httpRequest };

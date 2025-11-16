@@ -1,5 +1,5 @@
 import type { NewMeme } from "../models/meme.js";
-import { fetcher } from "./fetcher.js";
+import { httpRequest } from "./fetcher.js";
 
 const humor_api_key = String(process.env.HUMOR_API_KEY);
 
@@ -11,7 +11,7 @@ async function getRandomMeme(): Promise<NewMeme | undefined> {
                 "api-key": humor_api_key,
             }
         }
-        const { data: meme, error } = await fetcher<NewMeme>(url, config);
+        const { data: meme, error } = await httpRequest<NewMeme, null>(url, config);
         if(error){
             // todo
             return;
