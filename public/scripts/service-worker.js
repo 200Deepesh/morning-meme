@@ -1,13 +1,13 @@
 const saveSubscription = async (subscription) => {
-  const SERVER_URL = "http://localhost:3000/api/subscription";
-  const response = await fetch(SERVER_URL, {
-    method: "post",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(subscription),
-  });
-  return response;
+    const SERVER_URL = "http://localhost:3000/api/subscription";
+    const response = await fetch(SERVER_URL, {
+        method: "post",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subscription),
+    });
+    return response;
 };
 
 self.addEventListener('notificationclick', (event) => {
@@ -60,4 +60,12 @@ self.addEventListener("activate", async () => {
     } catch (error) {
         console.error(error);
     }
-})
+});
+
+self.addEventListener("push", async (event) => {
+    if (event.data) {
+        self.registration.showNotification("Friend Request", JSON.parse(event.data.text()));
+    } else {
+        console.error("Push event but no data!!");
+    }
+});
