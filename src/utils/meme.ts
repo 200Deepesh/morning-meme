@@ -1,25 +1,29 @@
-import type { NewMeme } from "../models/meme.js";
-import { httpRequest } from "./fetcher.js";
+import { type NewMeme, type Meme, memes, isMeme } from "../models/meme.js";
+import { db } from "../config/db.js";
+import { eq } from "drizzle-orm";
 
 const humor_api_key = String(process.env.HUMOR_API_KEY);
 
-async function getRandomMeme(): Promise<NewMeme | undefined> {
-    try {
-        const url = 'https://api.humorapi.com/memes/random';
-        const config = {
-            queryParams: {
-                "api-key": humor_api_key,
-            }
+async function setMeme(): Promise<boolean> {
+    const url = `https://api.humorapi.com/memes/random?api-key=${humor_api_key}`;
+    let res = await fetch(url);
+    let meme = await res.json();
+    if (isMeme(meme)) {
+        meme.memeId = meme.id;
+        meme.id = 1;
+        const oldMeme = await getMeme();
+        if(oldMeme){
+            await db.update(memes).set(meme).where(eq(memes.id, 1));
+        } else {
+            await db.insert(memes).values(meme);
         }
-        const { data: meme, error } = await httpRequest<NewMeme, null>(url, config);
-        if(error){
-            // todo
-            return;
-        }
-        return meme;
-    } catch (error) {
-        
+        return true;
     }
+    return false;
 }
 
-export { getRandomMeme };
+async function getMeme(): Promise<Meme | undefined> {
+    const meme = await db.select().from(memes).where(eq(memes.id, 1));
+    return meme[0];
+}
+export { setMeme, getMeme };

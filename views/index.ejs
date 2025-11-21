@@ -1,15 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        #meme-containor {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        #meme {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 1px solid black;
+        }
+    </style>
 </head>
+
 <body>
     <h1>Meme Morning</h1>
-    <button id="sub-btn">Subscribe</button>
-    <button id="not-btn">Send Notification</button>
-    <!-- <img src="https://preview.redd.it/vxlkg7vu4sd71.jpg?width=640&crop=smart&auto=webp&s=122358db37ab578a7ebc55d9c3a01e2229953221" style="height:360px;" alt=""> -->
+    <div id="meme-containor">
+        <img id="meme" src=<%= meme.url %> alt="meme">
+    </div>
+    <div>
+        <button id="subscribe-btn">Subscribe</button>
+        <button id="not-btn">Send Notification</button>
+    </div>
     <script type="module" src="/scripts/script.js"></script>
 </body>
+
 </html>

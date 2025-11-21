@@ -1,6 +1,6 @@
 const saveSubscription = async (subscription) => {
-    const SERVER_URL = "http://localhost:3000/api/subscription";
-    const response = await fetch(SERVER_URL, {
+    const url = "http://localhost:3000/api/subscription";
+    const response = await fetch(url, {
         method: "post",
         headers: {
             "Content-Type": "application/json",
@@ -29,13 +29,13 @@ self.addEventListener('notificationclick', (event) => {
                             })
                             .then((windowClients) => {
                                 const matchingClient = windowClients.find(
-                                    (wc) => wc.url === 'https://www.google.com/'
+                                    (wc) => wc.url === 'http://localhost:3000/'
                                 );
 
                                 if (matchingClient) {
                                     return matchingClient.focus();
                                 } else {
-                                    return clients.openWindow('https://www.google.com/');
+                                    return clients.openWindow('http://localhost:3000/');
                                 }
                             })
                     );
@@ -50,13 +50,16 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener("activate", async () => {
     try {
-        const applicationServerKey = Uint8Array.fromBase64(
-            "BE86fIv4aaRy-INIjXYlQA27kvbYVLJIho8iSEl374hD_ESbmAtNmjtJy4dkSX978Lb9yYGeal_TtkaCT9wXaTw",
-            { alphabet: "base64url" }
-        );
-        const subscription = await self.registration.pushManager.subscribe({ applicationServerKey, userVisibleOnly: true });
-        const res = await saveSubscription(subscription);
-        console.log(res.status);
+        const isSubscriber = await self.registration.pushManager.getSubscription();
+        if (!isSubscriber) {
+            const applicationServerKey = Uint8Array.fromBase64(
+                "BE86fIv4aaRy-INIjXYlQA27kvbYVLJIho8iSEl374hD_ESbmAtNmjtJy4dkSX978Lb9yYGeal_TtkaCT9wXaTw",
+                { alphabet: "base64url" }
+            );
+            const subscription = await self.registration.pushManager.subscribe({ applicationServerKey, userVisibleOnly: true });
+            const res = await saveSubscription(subscription);
+            console.log(res.status);
+        }
     } catch (error) {
         console.error(error);
     }
@@ -68,4 +71,12 @@ self.addEventListener("push", async (event) => {
     } else {
         console.error("Push event but no data!!");
     }
+});
+
+self.addEventListener("pushsubscriptionchange", async (event) => {
+    console.log("pushsubscriptionchange");
+    const conv = (val) => self.btoa(String.fromCharCode.apply(null, new Uint8Array(val)));
+    const subscription = await self.registration.pushManager.subscribe(event.oldSubscription.options);
+    const res = await saveSubscription(subscription, event.oldSubscription);
+    console.log(res.status);
 });

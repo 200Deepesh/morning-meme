@@ -1,5 +1,5 @@
 interface Config {
-    port: Number;
+    port: number;
     nodeEnv: String;
 }
 

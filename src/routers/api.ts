@@ -2,6 +2,8 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { saveSubscription, getSubscriptionById } from "../utils/subscription.js";
 import { sendNotification } from "../utils/helper.js";
+import { getMeme } from "../utils/meme.js";
+import { isMeme } from "../models/meme.js";
 
 const router = Router();
 
@@ -18,18 +20,34 @@ router.post("/subscription", async (req: Request, res: Response) => {
         await saveSubscription(endpoint, keys.p256dh, keys.auth);
         return res.status(200);
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        return res.status(500).json({ message: "some thing went wrong!!" });
+    }
+});
+
+router.put("/subscription", async (req: Request, res: Response) => {
+    try {
+        const subscription: sub = req.body.subscription;
+        const { endpoint, keys } = subscription;
+        await saveSubscription(endpoint, keys.p256dh, keys.auth);
+        return res.status(200);
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({ message: "some thing went wrong!!" });
     }
 });
 
 router.post("/push-notification", async (req: Request, res: Response) => {
     try {
-        // const { id } = req.body;
-        const subscription = await getSubscriptionById(1);
+        const { id } = req.body;
+
+        const subscription = await getSubscriptionById(id);
+        if (!subscription) throw TypeError(`subscription can not be ${typeof (subscription)}!!`);
+        const meme = await getMeme();
+        if (!isMeme(meme)) throw TypeError(`meme can not be ${typeof (meme)}!!`);
         const message = {
-            body: "Elon Musk sent you a friend request",
-            icon: "https://media.npr.org/assets/img/2022/06/01/ap22146727679490-6b4aeaa7fd9c9b23d41bbdf9711ba54ba1e7b3ae-s800-c85.webp",
+            body: meme.description,
+            image: meme.url,
             data: {
                 requestId: "1234",
                 username: "elonmusk"
@@ -46,9 +64,8 @@ router.post("/push-notification", async (req: Request, res: Response) => {
             ],
             tag: "friend_request",
         };
-        if(!subscription) throw TypeError();
         await sendNotification(subscription, message);
-        res.json({ message: "message sent" });    
+        res.json({ message: "notification sent" });
     } catch (error) {
         console.error(error);
         res.status(500).json("failed to push notification!!");

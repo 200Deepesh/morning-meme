@@ -13,7 +13,7 @@ const saveSubscription = async (endpoint: string, p256dh: string, auth: string) 
             console.error(`Error:\n\tname: ${error.name}\n\tmessage: ${error.message}`);
             throw new Error(error.message);
         }
-        else throw new Error("Unknow error occurred!!");
+        else throw new Error("Unknow error occurred while inserting subscription!!");
     }
 }
 
@@ -41,5 +41,27 @@ const getSubscriptionById = async (id: number) => {
         else throw new Error("Unknow error occurred!!");
     }
 }
+const getAllSubscriptions = async () => {
+    try {
+        const sub = await db
+            .select({
+                endpoint: subscriptions.endpoint,
+                keys: {
+                    p256dh: subscriptions.p256dh,
+                    auth: subscriptions.auth,
+                },
+            })
+            .from(subscriptions);
 
-export { saveSubscription, getSubscriptionById };
+        if (!sub) return [];
+        return sub;
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error(`Error:\n\tname: ${error.name}\n\tmessage: ${error.message}`);
+            throw new Error(error.message);
+        }
+        else throw new Error("Unknow error occurred!!");
+    }
+}
+
+export { saveSubscription, getSubscriptionById, getAllSubscriptions };
