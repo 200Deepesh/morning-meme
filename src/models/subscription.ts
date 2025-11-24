@@ -1,12 +1,14 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import crypto from "node:crypto";
 
 // Define the books table schema
 export const subscriptions = sqliteTable('subscriptions', {
-    id: integer('id').primaryKey(),
+    id: text('id').primaryKey().$default(()=> crypto.randomUUID()),
     endpoint: text("endpoint").notNull().unique(),
     // expirationTime: null,
     p256dh: text("p256dh").notNull(),
     auth: text("auth").notNull(),
+    status: text("status").$type<"active" | "inactive" | "expire">().notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' })
         .notNull()
         .default(new Date())

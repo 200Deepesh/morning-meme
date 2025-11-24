@@ -1,22 +1,24 @@
 const subscribeBtn = document.getElementById('subscribe-btn');
-const notificationBtn = document.getElementById('not-btn');
+const unsubscribeBtn = document.getElementById('unsubscribe-btn');
 
-notificationBtn.style.display = (Notification.permission == "granted") ? "block" : "none";
-subscribeBtn.style.display = (Notification.permission == "granted") ? "none" : "block";
+const isSubscriber = Notification.permission == "granted" && "active" == await cookieStore.get("status").then((s) => s.value);
+
+unsubscribeBtn.style.display = (isSubscriber) ? "block" : "none";
+subscribeBtn.style.display = (isSubscriber) ? "none" : "block";
 
 const askNotificationPermission = () => {
     if (!("Notification" in window)) {
-        alert("Your browser does not support notification.");
+        return alert("Your browser does not support notification.");
     }
     Notification
         .requestPermission()
-        .then((permission) => {
+        .then(async (permission) => {
             if (permission == "granted") {
                 // sendNotification("Morning Meme", "Get ready to add more humor in your life!!");
-                const sw = registerServiceWorker();
-                if(sw){
-                    alert("Get ready to make you morning more funny!!");
-                    notificationBtn.style.display = "block";
+                const sw = await registerServiceWorker();
+                if (sw) {
+                    alert("Get ready to make your morning more funny!!");
+                    unsubscribeBtn.style.display = "block";
                     subscribeBtn.style.display = "none";
                 }
             }
@@ -34,32 +36,56 @@ const registerServiceWorker = async () => {
             );
             return registration;
         } catch (error) {
-            console.error(`Registration failed with ${error}`);
+            // console.error(`Registration failed with following error:\n${error}`);
+            alert("Some thing went wrong. Please try again later!!");
         }
     }
 }
 
-const sendNotification = async (title, body, image) => {
-    const options = {
-        body,
-        image: image || "http://localhost:3000/assets/elonmusk.jpg",
-        data: { requestId: 123, username: "Elon@221" },
-        actions: [
-            {
-                action: "accecpt",
-                title: "Accecpt",
+const subscribeUser = async () => {
+    const status = await cookieStore.get("status").then((s) => s.value);
+    const subId = await cookieStore.get("subId").then((s) => s.value);
+    if(!subId){
+        askNotificationPermission();
+    }
+    else if(status == "inactive"){
+        const res = await fetch("http://localhost:3000/api/subscription", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
             },
-            {
-                action: "view",
-                title: "View",
-            },
-        ],
-        tag: "friend_request",
-    };
-    const sw = await registerServiceWorker();
-    sw.showNotification(title, options);
+            body: JSON.stringify({ status: "active" }),
+        });
+        if (!res.ok) {
+            alert("Fail to subscribe. Please try again later!!");
+        } else {
+            alert("You can unsubscribe us again, any time any were.");
+            unsubscribeBtn.style.display = "block";
+            subscribeBtn.style.display = "none";
+        }
+    }
 }
-subscribeBtn.addEventListener('click', askNotificationPermission);
-notificationBtn.addEventListener('click', (e) => sendNotification("Morning Meme", "Get ready to add more humor in your life!!", "http://localhost:3000/assets/elonmusk.jpg"));
+
+const unsubscribeUser = async () => {
+    const res = await fetch("http://localhost:3000/api/subscription", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "inactive" }),
+    });
+    if (!res.ok) {
+        alert("Fail to unsubscribe. Please try again later!!");
+    } else {
+        alert("You can subscribe us again, any time any were.");
+        unsubscribeBtn.style.display = "none";
+        subscribeBtn.style.display = "block";
+    }
+}
+
+
+
+subscribeBtn.addEventListener('click', subscribeUser);
+unsubscribeBtn.addEventListener('click', unsubscribeUser);
 
 
