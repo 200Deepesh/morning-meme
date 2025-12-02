@@ -1,7 +1,7 @@
 const subscribeBtn = document.getElementById('subscribe-btn');
 const unsubscribeBtn = document.getElementById('unsubscribe-btn');
 
-const isSubscriber = Notification.permission == "granted" && "active" == await cookieStore.get("status").then((s) => s.value);
+const isSubscriber = Notification.permission == "granted" && "active" == await cookieStore.get("status").then((s) => s?.value);
 
 unsubscribeBtn.style.display = (isSubscriber) ? "block" : "none";
 subscribeBtn.style.display = (isSubscriber) ? "none" : "block";
@@ -43,12 +43,12 @@ const registerServiceWorker = async () => {
 }
 
 const subscribeUser = async () => {
-    const status = await cookieStore.get("status").then((s) => s.value);
-    const subId = await cookieStore.get("subId").then((s) => s.value);
+    const status = await cookieStore.get("status").then((s) => s?.value);
+    const subId = await cookieStore.get("subId").then((s) => s?.value);
     if(!subId){
         askNotificationPermission();
     }
-    else if(status == "inactive"){
+    else if(status != "active"){
         const res = await fetch("http://localhost:3000/api/subscription", {
             method: "PUT",
             headers: {

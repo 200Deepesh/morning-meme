@@ -28,6 +28,7 @@ router.post("/subscription", async (req: Request, res: Response) => {
 });
 
 router.put("/subscription", async (req: Request, res: Response) => {
+    console.log("----")
     try {
         const subId = req.cookies.subId;
         if (!subId) return res.status(400).json({error: "Subscription id is missing!!"});

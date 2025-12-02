@@ -30,10 +30,10 @@ app.listen(config.port, () => console.log(`Server is listening to PORT: ${config
 
 cron.schedule('* * * * *', async () => {
   console.log('running a task every minute');
-  // const isSet = await setMeme();
-  // if(isSet){
+//   const isSet = await setMeme();
+//   if(isSet){
       await pushMemeNotificationToAll();
-  // } else {
-  //   console.error(`setMeme return false!!`);
-  // }
+//   } else {
+//     console.error(`setMeme return false!!`);
+//   }
 });
